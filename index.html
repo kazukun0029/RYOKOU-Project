@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>海外旅行プランナー</title>
+<meta name="description" content="URLや画像から旅程を作って、写真入りのパンフレットPDFにできる海外旅行プランナー">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2430;--mu:#6b7280;--bd:#e2e5ea;--ac:#2563eb;--ac2:#e8effd;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151b;--card:#1b2029;--tx:#e8ebf0;--mu:#98a1b0;--bd:#2c3340;--ac:#6ea0ff;--ac2:#1f2b45}}
+:root[data-theme="dark"]{--bg:#12151b;--card:#1b2029;--tx:#e8ebf0;--mu:#98a1b0;--bd:#2c3340;--ac:#6ea0ff;--ac2:#1f2b45}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 -apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1 1 140px;min-width:0}
+label{display:block;font-size:12px;color:var(--mu);margin:6px 0 2px}
+input,select,textarea{width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+textarea{min-height:64px;resize:vertical}
+button{padding:8px 14px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:inherit;cursor:pointer}
+button.sub{background:var(--ac2);color:var(--ac)}
+button.del{background:transparent;color:var(--mu);padding:2px 8px}
+.hint{font-size:12px;color:var(--mu);margin:4px 0 0}
+.day{font-weight:700;margin:16px 0 6px;padding-bottom:4px;border-bottom:2px solid var(--ac)}
+.item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.tm{width:120px;flex:none;color:var(--mu);font-variant-numeric:tabular-nums;font-size:13px}
+.tg{display:inline-block;font-size:11px;background:var(--ac2);color:var(--ac);border-radius:6px;padding:0 6px;margin-right:6px}
+.item a,.url{font-size:12px;color:var(--ac);word-break:break-all}
+.note{font-size:13px;color:var(--mu);white-space:pre-wrap}
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+.tabs button{background:var(--ac2);color:var(--ac)}
+.tabs button.on{background:var(--ac);color:#fff}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.bro{display:none}
+.cover{min-height:260px;border-radius:14px;color:#fff;padding:32px 24px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(135deg,#2563eb,#7c3aed) center/cover;margin-bottom:18px}
+.cover h2{font-size:30px;margin:0}
+.cover p{margin:4px 0 0;opacity:.9}
+.bday{font-size:18px;font-weight:700;margin:22px 0 10px;border-left:5px solid var(--ac);padding-left:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.bc{background:var(--card);border:1px solid var(--bd);border-radius:12px;overflow:hidden;break-inside:avoid}
+.pw{display:flex;gap:2px;overflow:hidden;height:190px}
+.pw img{flex:1;min-width:0;height:100%;object-fit:cover;display:block}
+.ctl{padding:6px 10px;background:var(--ac2);font-size:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ctl img{width:36px;height:36px;object-fit:cover;border-radius:4px;vertical-align:middle}
+.ctl input[type=range]{width:110px;padding:0}
+.ctl select{width:auto;padding:2px}
+.ctl label{display:inline-flex;align-items:center;gap:3px;margin:0;color:var(--tx)}
+.ctl input[type=checkbox]{width:auto}
+
+
+.bc .bd{padding:10px}
+.bi{display:flex;flex-direction:column}
+.bi .bd{flex:1;min-width:0}
+.bc .nm{font-weight:700}
+#ptitle{display:none}
+@media print{
+ body{background:#fff;color:#000}
+ .noprint{display:none!important}
+ #ptitle{display:block;font-size:22px;font-weight:700}
+ .card{border:0;padding:0}
+ .item{break-inside:avoid}
+ .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;break-after:page}
+ .bc{background:#fff;border-color:#ddd;color:#000}
+ .ctl{display:none}
+ .pw img{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .note{color:#444}
+ .wrap{padding:0;max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1 class="noprint">✈️ 海外旅行プランナー</h1>
+<div class="row noprint" style="margin-bottom:12px">
+<button onclick="saveFile()">💾 データ保存</button>
+<button class="sub" onclick="$('ld').click()">📂 読み込み</button>
+<button class="sub" id="vb" onclick="view()">📖 パンフレット表示</button>
+<button class="sub" onclick="makePdf()">📄 PDF作成（写真入り）</button>
+</div>
+<input id="ld" type="file" accept=".json,application/json" style="display:none">
+<input id="phx" type="file" accept="image/*" multiple style="display:none">
+<div id="jxw" class="card noprint" style="display:none"><label>ファイルを直接保存できない環境です。下のテキストをコピーして、メモ帳などに .json で保存してください</label><textarea id="jx"></textarea></div>
+<div id="bro" class="bro"></div>
+<div class="card noprint" id="imp" style="display:none">
+ <strong>🖼 画像から自動取り込み</strong>
+ <p class="hint">予約確認・航空券・地図のスクリーンショットや写真を、ドラッグ＆ドロップ／貼り付け（Ctrl+V）／選択で追加すると、Google Geminiが内容を読み取り、予定や写真として取り込み候補を出します。画像は、あなたのGemini APIキーを使ってGoogleのGemini APIに送信されます。下の「Gemini設定」でAPIキーを入力してください。</p>
+ <details id="gset" style="margin:8px 0"><summary>⚙ Gemini設定</summary>
+  <label>あなたのGemini APIキー（<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>で発行）</label><input id="gkey" type="password" autocomplete="off" placeholder="AIza...">
+  <label>モデル</label><select id="gmodel"><option>gemini-2.5-flash</option><option>gemini-2.5-flash-lite</option><option>gemini-2.5-pro</option><option>gemini-3-flash-preview</option></select>
+  <label style="display:flex;gap:6px;align-items:center;color:var(--tx)"><input id="gremember" type="checkbox" style="width:auto"> このブラウザに保存する（共用のパソコンではオフ）</label>
+  <div class="row" style="margin-top:6px"><button class="sub" onclick="gSave(true)">保存</button><button class="sub" onclick="gTest()">接続テスト</button></div>
+  <div id="gst" class="hint"></div>
+ </details>
+ <div id="dz" style="border:2px dashed var(--bd);border-radius:10px;padding:18px;text-align:center;color:var(--mu);cursor:pointer">ここに画像をドロップ、またはクリックして選択</div>
+ <input id="impf" type="file" accept="image/*" multiple style="display:none">
+ <div id="impst" class="hint"></div>
+ <div id="impr"></div>
+</div>
+
+<div class="card noprint">
+ <div class="row">
+  <div><label>旅行タイトル</label><input id="trip" placeholder="例: ソウル3泊4日"></div>
+  <div><label>出発日</label><input id="d0" type="date"></div>
+  <div><label>帰着日</label><input id="d1" type="date"></div>
+ </div>
+</div>
+
+<div class="card noprint">
+ <div class="tabs">
+  <button id="t-spot" class="on" onclick="mode('spot')">ホテル・観光（URL）</button>
+  <button id="t-tr" onclick="mode('tr')">飛行機・鉄道（テキスト取込）</button>
+ </div>
+
+ <div id="m-spot">
+  <label>GoogleマップまたはWebのURL</label>
+  <div class="row"><input id="url" placeholder="https://www.google.com/maps/place/..."><button class="sub" style="flex:0 0 auto" onclick="fromUrl()">URLから取込</button></div>
+  <p class="hint">Googleマップの長いURL（/place/…）なら場所名と座標を自動で抜き出します。短縮URL（maps.app.goo.gl）や他サイトは名前を手入力してください。</p>
+ </div>
+
+ <div id="m-tr" style="display:none">
+  <label>航空会社・鉄道サイトの検索結果などをコピーして貼り付け</label>
+  <textarea id="paste" placeholder="例: 2026-11-20 NH 861 HND 09:15 → ICN 11:45"></textarea>
+  <button class="sub" style="margin-top:6px" onclick="fromText()">時刻・便名を抽出</button>
+  <p class="hint">このページから外部サイトを直接取得はできないため、コピーしたテキストから日付・時刻・便名・空港コードを読み取ります。</p>
+ </div>
+
+ <div class="row">
+  <div><label>種別</label><select id="type"><option>ホテル</option><option>観光</option><option>食事</option><option>飛行機</option><option>鉄道</option><option>その他</option></select></div>
+  <div style="flex:2 1 220px"><label>名称</label><input id="name"></div>
+  <div><label>開始日</label><input id="date" type="date"></div>
+  <div><label>開始時刻</label><input id="t0" type="time"></div>
+  <div><label>終了日</label><input id="date1" type="date"></div>
+  <div><label>終了時刻</label><input id="t1" type="time"></div>
+ </div>
+ <div class="row">
+  <div><label>出発地（交通）</label><input id="from"></div>
+  <div><label>到着地（交通）</label><input id="to"></div>
+  <div style="flex:2 1 220px"><label>リンク</label><input id="link"></div>
+ </div>
+ <label>メモ</label><textarea id="memo"></textarea>
+ <label>写真（端末の画像を選択）</label><input id="photo" type="file" accept="image/*" multiple><div id="pv" class="row" style="margin-top:6px"></div>
+ <p class="hint">URL先の写真の自動取得はできないため、保存した画像を選んでください。写真が多いとブラウザの自動保存容量を超えることがあるので、必ず「データ保存」でファイルにも保存してください。</p>
+ <div style="margin-top:8px"><button id="ab" onclick="add()">予定に追加</button> <button id="cb" class="sub" style="display:none" onclick="cancelEdit()">編集をやめる</button></div>
+</div>
+
+<div class="card">
+ <div class="bar noprint"><strong>旅程</strong><button onclick="makePdf()">PDF出力</button></div>
+ <div id="ptitle"></div>
+ <div id="list"></div>
+ <p class="hint noprint">「パンフレット表示」で写真の選択とサイズ調整をしてから、「PDF作成」を押してください。</p>
+</div>
+</div>
+
+<p class="hint noprint" style="text-align:center;max-width:860px;margin:0 auto;padding:0 16px 24px">入力した旅程・写真は、お使いのブラウザの中にだけ保存されます（サーバーには送信されません）。「画像から自動取り込み」を使うと、選んだ画像がGoogle Gemini APIに送信されます。ブラウザのデータを消すと旅程も消えるため、こまめに「データ保存」でファイルに残してください。</p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+(function(){
+  function $i(id){return document.getElementById(id);}
+  function gKey(){return (localStorage.getItem('gemini_key')||sessionStorage.getItem('gemini_key')||'').trim();}
+  function gModel(){return localStorage.getItem('gemini_model')||'gemini-2.5-flash';}
+  function shrink(f,max){return new Promise(function(res,rej){
+    var u=URL.createObjectURL(f),im=new Image();
+    im.onload=function(){var s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');
+      c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.85).split(',')[1]);};
+    im.onerror=function(){URL.revokeObjectURL(u);rej({code:'image_rejected'});};
+    im.src=u;});}
+  window.GEM={
+    json:function(q,o){
+      var k=gKey();if(!k)return Promise.reject({code:'no_key'});
+      var imgs=(o&&o.images)||[];
+      return Promise.all(imgs.map(function(f){return shrink(f,1600).then(function(d){return {inline_data:{mime_type:'image/jpeg',data:d}};});}))
+      .then(function(parts){
+        parts.push({text:q});
+        return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+gModel()+':generateContent',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-goog-api-key':k},
+          body:JSON.stringify({contents:[{parts:parts}],generationConfig:{temperature:0,responseMimeType:'application/json'}})});
+      }).then(function(r){
+        if(r.ok)return r.json();
+        return r.json().catch(function(){return {};}).then(function(j){
+          var m=(j.error&&j.error.message)||'';
+          if(r.status===401||r.status===403||/API key/i.test(m))throw {code:'bad_key'};
+          if(r.status===429)throw {code:'rate_limited'};
+          throw {code:'error',detail:('HTTP '+r.status+' '+m).slice(0,140)};});
+      }).then(function(j){
+        if(j.promptFeedback&&j.promptFeedback.blockReason)throw {code:'refused'};
+        var c=j.candidates&&j.candidates[0],p=c&&c.content&&c.content.parts,t=p&&p.map(function(x){return x.text||'';}).join('');
+        if(!t)throw {code:'empty_completion'};
+        try{return JSON.parse(t);}catch(e){throw {code:'invalid_json'};}
+      });
+    }
+  };
+  window.gSave=function(msg){
+    var k=($i('gkey').value||'').trim();
+    localStorage.removeItem('gemini_key');sessionStorage.removeItem('gemini_key');
+    if(k)(($i('gremember').checked)?localStorage:sessionStorage).setItem('gemini_key',k);
+    localStorage.setItem('gemini_model',$i('gmodel').value);
+    if(msg)$i('gst').textContent='保存しました（'+$i('gmodel').value+'）'+(k&&!$i('gremember').checked?'。このタブを閉じると消えます。':'');
+  };
+  window.gTest=function(){
+    window.gSave(false);$i('gst').textContent='接続テスト中…';
+    window.GEM.json('次のJSONだけを返してください: {"ok":true}',{images:[]})
+      .then(function(){$i('gst').textContent='接続OK（'+gModel()+'）';})
+      .catch(function(e){$i('gst').textContent='エラー: '+(e.code||'')+(e.detail?' '+e.detail:'');});
+  };
+  $i('gkey').value=gKey();$i('gmodel').value=gModel();$i('gremember').checked=!!localStorage.getItem('gemini_key');
+  if(!gKey())$i('gset').open=true;
+})();
+</script>
+<script>
+var items=[],meta={},KEY="tripplanner1";
+function load(){try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);items=o.items||[];meta=o.meta||{}}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({items:items,meta:{trip:$("trip").value,d0:$("d0").value,d1:$("d1").value,cov:cov,covset:covset}}))}catch(e){}}
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s||"").replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function mode(m){$("m-spot").style.display=m=="spot"?"":"none";$("m-tr").style.display=m=="tr"?"":"none";$("t-spot").className=m=="spot"?"on":"";$("t-tr").className=m=="tr"?"on":""}
+function fromUrl(){
+ var u=$("url").value.trim();if(!u)return;$("link").value=u;
+ try{
+  var x=new URL(u),p=x.pathname,n="";
+  if(/google\./.test(x.hostname)&&p.indexOf("/place/")>-1){n=decodeURIComponent(p.split("/place/")[1].split("/")[0]).replace(/\+/g," ")}
+  else if(x.searchParams.get("q")){n=x.searchParams.get("q")}
+  else if(/goo\.gl/.test(x.hostname)){alert("短縮URLは中身を読み取れません。名称を手入力してください（リンクは保存されます）。")}
+  else{n=x.hostname.replace(/^www\./,"")}
+  if(n)$("name").value=n;
+  var m=u.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m)$("memo").value=($("memo").value+"\n座標: "+m[1]+", "+m[2]).trim();
+ }catch(e){alert("URLの形式が正しくありません")}
+}
+function fromText(){
+ var t=$("paste").value,m;
+ m=t.match(/(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})/);
+ if(m)$("date").value=m[1]+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[3]).slice(-2);
+ var tm=t.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/g)||[];
+ if(tm[0])$("t0").value=("0"+tm[0]).slice(-5);
+ if(tm[1])$("t1").value=("0"+tm[1]).slice(-5);
+ var f=t.match(/\b([A-Z]{2}|[A-Z]\d)\s?(\d{2,4})\b/);
+ var ap=(t.match(/\b[A-Z]{3}\b/g)||[]);
+ if(ap[0])$("from").value=ap[0];
+ if(ap[1])$("to").value=ap[1];
+ var train=/新幹線|列車|train|rail|KTX|TGV|ICE|Eurostar/i.test(t);
+ $("type").value=train?"鉄道":"飛行機";
+ if(f)$("name").value=f[1]+f[2];
+ else if(!$("name").value)$("name").value=ap[0]&&ap[1]?ap[0]+" → "+ap[1]:"移動";
+ $("memo").value=t.slice(0,300);
+ if(!tm.length)alert("時刻が見つかりませんでした。下のフォームに手入力してください。");
+}
+function add(){
+ if(!$("name").value.trim()){alert("名称を入力してください");return}
+ var o={type:$("type").value,name:$("name").value.trim(),date:$("date").value,d1:$("date1").value,t0:$("t0").value,t1:$("t1").value,from:$("from").value,to:$("to").value,link:$("link").value.trim(),memo:$("memo").value};
+ if(o.d1&&o.date&&o.d1<o.date){alert("終了日が開始日より前になっています");return}
+ if(ed>=0){var c=items[ed];o.photos=(c.photos||[]).concat(pend);o.ph=c.ph;o.span=c.span;o.off=c.off;o.pset=c.pset;o.fs=c.fs;o.lay=c.lay;o.o=c.o;items[ed]=o;ed=-1;$("ab").textContent="予定に追加";$("cb").style.display="none"}else{o.photos=pend;items.push(o)}
+ pend=[];$("pv").innerHTML="";$("photo").value="";
+ ["name","date1","t0","t1","from","to","link","memo","url","paste"].forEach(function(i){$(i).value=""});defDates();
+ save();render();
+}
+function del(i){if(ed>=0)cancelEdit();items.splice(i,1);save();render()}
+function render(){
+ var g={};items.forEach(function(it,i){it.i=i;var k=it.date||"日付未定";(g[k]=g[k]||[]).push(it)});
+ var keys=Object.keys(g).sort(function(a,b){return a=="日付未定"?1:b=="日付未定"?-1:a<b?-1:1});
+ var h="";
+ keys.forEach(function(k,di){
+  var lab=k;
+  if(k!="日付未定"){var d=new Date(k+"T00:00:00");lab=k+"（"+"日月火水木金土"[d.getDay()]+"）"}
+  h+='<div class="day">'+esc(lab)+'</div>';
+  g[k].sort(cmpO).forEach(function(it){
+   var tm=tmTxt(it,"--:--");
+   var route=(it.from||it.to)?' <span class="note">'+esc(it.from)+" → "+esc(it.to)+"</span>":"";
+   h+='<div class="item"><div class="tm">'+tm+'</div><div style="flex:1"><span class="tg">'+esc(it.type)+'</span><strong>'+esc(it.name)+'</strong>'+route+
+   (it.link?'<div class="url">'+esc(it.link)+'</div>':"")+(it.memo?'<div class="note">'+esc(it.memo)+'</div>':"")+
+   (it.photos&&it.photos.length?'<div class="note">📷 '+it.photos.length+'枚</div>':"")+'</div><button class="del noprint" onclick="edit('+it.i+')">✏️</button><button class="del noprint" onclick="ph('+it.i+')">📷</button><button class="del noprint" onclick="del('+it.i+')">✕</button></div>';
+  });
+ });
+ $("list").innerHTML=h||'<p class="hint">まだ予定がありません。上のフォームから追加してください。</p>';
+ var t=$("trip").value||"旅行計画",r=($("d0").value&&$("d1").value)?"　"+$("d0").value+" 〜 "+$("d1").value:"";
+ $("ptitle").textContent=t+r;renderBro(t,r);
+}
+function doPrint(){try{window.print()}catch(e){alert("印刷画面を開けませんでした。ブラウザの印刷機能（Ctrl/Cmd+P）をお使いください。")}}
+var pend=[],curPh=-1,dl=null,vb=false;
+dl={save:function(o){return new Promise(function(res){var b=(typeof o.data==='string')?new Blob([o.data],{type:'application/json;charset=utf-8'}):o.data,a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=o.filename;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();res()},500)})}};
+function readImg(f,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.78))};im.src=r.result};r.readAsDataURL(f)}
+function readAll(fs,cb){Array.prototype.forEach.call(fs,function(f){readImg(f,cb)})}
+$('photo').onchange=function(){readAll(this.files,function(u){pend.push(u);var m=document.createElement('img');m.src=u;m.style.cssText='width:64px;height:48px;object-fit:cover;border-radius:6px;flex:none';$('pv').appendChild(m)})};
+function ph(i){curPh=i;$('phx').click()}
+$('phx').onchange=function(){var n=curPh;readAll(this.files,function(u){(items[n].photos=items[n].photos||[]).push(u);save();render()});this.value=''};
+function saveFile(){
+ var s=JSON.stringify({v:1,meta:{trip:$('trip').value,d0:$('d0').value,d1:$('d1').value,cov:cov,covset:covset},items:items.map(function(x){var c=Object.assign({},x);delete c.i;return c})});
+ function fb(){$('jx').value=s;$('jxw').style.display=''}
+ if(!dl){fb();return}
+ dl.save({filename:'trip-plan.json',data:s}).catch(function(e){if(!e||e.code!='declined')fb()});
+}
+$('ld').onchange=function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);if(!o.items)throw 0;if(items.length&&!confirm('現在のデータを置き換えて読み込みますか？'))return;items=o.items;var m=o.meta||{};cov=m.cov||'';covset=m.covset||{};$('trip').value=m.trip||'';$('d0').value=m.d0||'';$('d1').value=m.d1||'';save();render()}catch(e){alert('読み込めないファイルです')}};r.readAsText(f);this.value=''};
+function cropImg(u,ratio){return new Promise(function(res){var im=new Image();im.onload=function(){var w=im.width,h=im.height,cw=w,ch=w/ratio;if(ch>h){ch=h;cw=h*ratio}var c=document.createElement('canvas');c.width=Math.round(cw);c.height=Math.round(ch);c.getContext('2d').drawImage(im,(w-cw)/2,(h-ch)/2,cw,ch,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.85))};im.onerror=function(){res(null)};im.src=u})}
+function makePptx(){
+ if(!window.PptxGenJS||!dl){alert('PowerPointを作成できない環境です。');return}
+ var t=$('trip').value||'旅行計画',r=($('d0').value&&$('d1').value)?$('d0').value+' 〜 '+$('d1').value:'';
+ var pp=new PptxGenJS(),F='Yu Gothic',W=13.333;pp.layout='LAYOUT_WIDE';
+ var first=null,g={};
+ items.forEach(function(it){if(!first&&it.photos&&it.photos[0])first=it.photos[0];var k=it.date||'日付未定';(g[k]=g[k]||[]).push(it)});
+ var p=Promise.resolve(first?cropImg(first,W/7.5):null).then(function(img){
+  var s=pp.addSlide();
+  if(img){s.addImage({data:img,x:0,y:0,w:W,h:7.5});s.addShape(pp.ShapeType.rect,{x:0,y:0,w:W,h:7.5,fill:{color:'000000',transparency:50},line:{color:'000000',transparency:100}})}
+  else s.background={color:'2563EB'};
+  s.addText(t,{x:.8,y:3.4,w:11.7,h:1.3,fontSize:44,bold:true,color:'FFFFFF',fontFace:F});
+  if(r)s.addText(r,{x:.8,y:4.8,w:11.7,h:.6,fontSize:20,color:'FFFFFF',fontFace:F});
+ });
+ Object.keys(g).sort(function(a,b){return a=='日付未定'?1:b=='日付未定'?-1:a<b?-1:1}).forEach(function(k){
+  var lab=k;if(k!='日付未定'){var d=new Date(k+'T00:00:00');lab=k+'（'+'日月火水木金土'[d.getDay()]+'）'}
+  var list=g[k].sort(function(a,b){return(a.t0||'99')<(b.t0||'99')?-1:1});
+  for(var i=0;i<list.length;i+=4)(function(ch,cont){
+   p=p.then(function(){return Promise.all(ch.map(function(it){return it.photos&&it.photos[0]?cropImg(it.photos[0],1):null}))}).then(function(im){
+    var sl=pp.addSlide();
+    sl.addText(lab+(cont?'（続き）':''),{x:.5,y:.3,w:12.3,h:.7,fontSize:26,bold:true,color:'2563EB',fontFace:F});
+    ch.forEach(function(it,j){
+     var x=.5+(j%2)*6.35,y=1.2+Math.floor(j/2)*3.0,hi=!!im[j];
+     if(hi)sl.addImage({data:im[j],x:x,y:y,w:2.8,h:2.8});
+     var tm=(it.t0||'')+(it.t1?'–'+it.t1:''),rt=(it.from||it.to)?it.from+' → '+it.to:'';
+     var runs=[{text:'['+it.type+'] ',options:{fontSize:11,bold:true,color:'2563EB'}},{text:it.name,options:{fontSize:16,bold:true,color:'1D2430',breakLine:true}}];
+     if(tm)runs.push({text:tm,options:{fontSize:12,color:'6B7280',breakLine:true}});
+     if(rt)runs.push({text:rt,options:{fontSize:12,color:'6B7280',breakLine:true}});
+     if(it.memo)runs.push({text:it.memo.replace(/\n/g,' ').slice(0,140),options:{fontSize:11,color:'374151',breakLine:true}});
+     if(it.link)runs.push({text:it.link.slice(0,80),options:{fontSize:9,color:'6B7280'}});
+     sl.addText(runs,{x:hi?x+2.95:x,y:y,w:hi?3.05:6.0,h:2.8,valign:'top',fontFace:F,margin:0});
+    });
+   });
+  })(list.slice(i,i+4),i>0);
+ });
+ p.then(function(){return pp.write({outputType:'blob'})}).then(function(b){return dl.save({filename:'trip-plan.pptx',data:b})}).catch(function(e){if(!e||e.code!='declined')alert('PowerPointを作成できませんでした。')});
+}
+function makePdf(){
+ if(!window.jspdf||!window.html2canvas||!dl){doPrint();return}
+ var was=vb,root=document.documentElement,old=root.getAttribute('data-theme');
+ if(!vb)view();
+ root.setAttribute('data-theme','light');
+ var b=$('bro'),units=[b.querySelector('.cover')].concat(Array.prototype.slice.call(b.querySelectorAll('.dg')));
+ var pdf=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),PW=190,PH=277,y=0,p=bakeAll();
+ units.forEach(function(u){
+  p=p.then(function(){return html2canvas(u,{scale:1.5,backgroundColor:'#ffffff'})});
+  p=p.then(function(c){
+   var h=c.height*PW/c.width;
+   if(h<=PH){if(y>0&&y+h>PH){pdf.addPage();y=0}pdf.addImage(c.toDataURL('image/jpeg',.85),'JPEG',10,10+y,PW,h);y+=h+4}
+   else{var sh=Math.floor(PH*c.width/PW);for(var o=0;o<c.height;o+=sh){var s=document.createElement('canvas');s.width=c.width;s.height=Math.min(sh,c.height-o);s.getContext('2d').drawImage(c,0,o,c.width,s.height,0,0,c.width,s.height);if(y>0){pdf.addPage();y=0}pdf.addImage(s.toDataURL('image/jpeg',.85),'JPEG',10,10,PW,s.height*PW/c.width);y=PH}}
+  });
+ });
+ p=p.then(function(){return dl.save({filename:'trip-plan.pdf',data:pdf.output('blob')})});
+ p.catch(function(e){if(!e||e.code!='declined')alert('PDFを作成できませんでした。印刷画面から保存してください。')}).then(function(){if(old)root.setAttribute('data-theme',old);else root.removeAttribute('data-theme');if(!was)view()});
+}
+function view(){vb=!vb;document.body.className=vb?'v-bro':'';
+ Array.prototype.forEach.call(document.querySelectorAll('.wrap>.card:not(#jxw)'),function(e){e.style.display=vb?'none':''});
+ $('bro').style.display=vb?'block':'none';if(vb)bakeAll();$('vb').textContent=vb?'✏️ 編集に戻る':'📖 パンフレット表示'}
+var smp=null,impMax=5,impRes=[],impImgs=[],TYPES=['ホテル','観光','食事','飛行機','鉄道','その他'];
+smp=window.GEM;impMax=6;$('imp').style.display='';
+$('dz').onclick=function(){$('impf').click()};
+$('dz').ondragover=function(e){e.preventDefault()};
+$('dz').ondrop=function(e){e.preventDefault();impAdd(e.dataTransfer.files)};
+$('impf').onchange=function(){impAdd(this.files);this.value=''};
+document.addEventListener('paste',function(e){var fs=[];Array.prototype.forEach.call((e.clipboardData&&e.clipboardData.items)||[],function(it){if(it.type.indexOf('image')==0){var f=it.getAsFile();if(f)fs.push(f)}});if(fs.length&&smp&&!vb)impAdd(fs)});
+function rd(f){return new Promise(function(r){readImg(f,r)})}
+function impAdd(fl){var fs=Array.prototype.filter.call(fl,function(f){return f.type.indexOf('image')==0});if(!fs.length||!smp)return;if(fs.length>impMax){fs=fs.slice(0,impMax);$('impst').textContent='一度に読み取れるのは'+impMax+'枚までです。最初の'+impMax+'枚を処理します。'}impRun(fs)}
+function impMsg(c){return c=='no_key'?'「Gemini設定」にAPIキーを入力してください。':c=='bad_key'?'APIキーが正しくありません。「Gemini設定」を確認してください。':c=='not_granted'?'Claudeの利用が許可されませんでした。':c=='rate_limited'?'利用回数の上限に達しました。しばらくしてからお試しください。':c=='image_rejected'?'この画像は読み取れませんでした。別のファイルをお試しください。':c=='invalid_json'||c=='empty_completion'||c=='refused'?'うまく読み取れませんでした。別の画像でお試しください。':c=='cancelled'?'':'読み取りに失敗しました。もう一度お試しください。'}
+function impClean(it){it=it||{};var dt=function(s){return /^\d{4}-\d{2}-\d{2}$/.test(s||'')?s:''},tm=function(s){var m=String(s||'').match(/^(\d{1,2}):(\d{2})$/);return m?('0'+m[1]).slice(-2)+':'+m[2]:''};return{type:TYPES.indexOf(it.type)>=0?it.type:'その他',name:String(it.name||'予定').slice(0,80),date:dt(it.date),d1:dt(it.d1),t0:tm(it.t0),t1:tm(it.t1),from:String(it.from||'').slice(0,40),to:String(it.to||'').slice(0,40),link:'',memo:String(it.memo||'').slice(0,200),photos:[]}}
+function impRun(fs){
+ var st=$('impst');st.textContent='読み取り中…（Gemini）';$('impr').innerHTML='';
+ var list=items.map(function(it,i){return i+': '+it.name+(it.date?'（'+it.date+'）':'')}).join('\n')||'（なし）';
+ var today=new Date().toISOString().slice(0,10);
+ var q='添付画像は旅行計画アプリに取り込む画像です。画像番号は添付順に0から数えます。各画像を分類し、次の形式のJSON配列だけを返してください（説明文やコードフェンスは不要）。\n[{"image":0,"kind":"schedule","items":[{"type":"ホテル|観光|食事|飛行機|鉄道|その他","name":"名称","date":"YYYY-MM-DD","d1":"終了日 YYYY-MM-DD","t0":"HH:MM","t1":"HH:MM","from":"出発地","to":"到着地","memo":"予約番号・住所など"}]},{"image":1,"kind":"photo","label":"写真に写っている場所や物の短い名前","match":-1}]\n規則:\n- 予約確認・航空券・乗車券・旅程表・メール・地図などの文字情報を含む画像は kind=schedule。読み取れた予定を全て items に入れる（往路と復路、複数のホテルは別々の項目）。\n- 風景・建物・料理などの写真は kind=photo。下の既存の予定一覧に明らかに対応するものがあれば、その番号を match に入れる。なければ -1。\n- 年が書かれていない日付は '+today+' 以降で最も近い年で補う。\n- 画像に書かれていない値は空文字にし、推測で作らない。\n\n既存の予定一覧:\n'+list;
+ Promise.all(fs.map(rd)).then(function(imgs){impImgs=imgs;return smp.json(q,{images:fs,modelTier:'default'})}).then(function(res){impRes=(Array.isArray(res)?res:(res&&res.items)||[]).filter(function(e){return e&&impImgs[e.image]});impShow()}).catch(function(e){st.textContent=impMsg(e&&e.code)+(e&&e.detail?'（'+e.detail+'）':'')});
+}
+function impShow(){var h='',n=0,st=$('impst');
+ impRes.forEach(function(e,ei){
+  var th='<img src="'+impImgs[e.image]+'" style="width:64px;height:64px;object-fit:cover;border-radius:6px;flex:none">';
+  if(e.kind=='photo'){n++;var op='<option value="-1">新しい予定として追加</option>'+items.map(function(it,i){return '<option value="'+i+'"'+(+e.match==i?' selected':'')+'>'+esc(it.name)+'に添付</option>'}).join('');
+   h+='<div class="item">'+th+'<div style="flex:1"><label style="display:flex;gap:6px;align-items:center;margin:0;color:var(--tx)"><input type="checkbox" id="cp'+ei+'" checked style="width:auto"> 写真として取り込む</label><div class="row"><input id="cl'+ei+'" value="'+esc(e.label||'')+'" placeholder="名称"><select id="cs'+ei+'">'+op+'</select></div></div></div>'}
+  else{e.items=(e.items||[]).map(impClean);e.items.forEach(function(c,ii){n++;h+='<div class="item">'+th+'<label style="flex:1;display:flex;gap:6px;margin:0;color:var(--tx)"><input type="checkbox" id="ci'+ei+'_'+ii+'" checked style="width:auto"><span><span class="tg">'+esc(c.type)+'</span><strong>'+esc(c.name)+'</strong><br><span class="note">'+esc((c.date+' '+tmTxt(c)+' '+((c.from||c.to)?c.from+' → '+c.to:'')+' '+c.memo).trim())+'</span></span></label></div>'})}
+ });
+ if(!n){st.textContent='取り込める内容が見つかりませんでした。';$('impr').innerHTML='';return}
+ st.textContent=n+'件見つかりました。取り込む内容を確認してください。';
+ $('impr').innerHTML=h+'<div style="margin-top:8px"><button onclick="impApply()">選択した内容を取り込む</button></div>'}
+function impApply(){var n=0;
+ impRes.forEach(function(e,ei){
+  if(e.kind=='photo'){var cb=$('cp'+ei);if(!cb||!cb.checked)return;var sel=+$('cs'+ei).value,u=impImgs[e.image];
+   if(sel>=0&&items[sel]){(items[sel].photos=items[sel].photos||[]).push(u)}else{var c=impClean({type:'観光',name:$('cl'+ei).value||'写真'});c.photos=[u];items.push(c)}n++}
+  else(e.items||[]).forEach(function(c,ii){var cb=$('ci'+ei+'_'+ii);if(cb&&cb.checked){items.push(c);n++}});
+ });
+ impRes=[];impImgs=[];$('impr').innerHTML='';$('impst').textContent=n+'件を取り込みました。';save();render()}
+var lastDate='';
+function defDates(){var a=$('d0').value;if(ed<0&&!$('date').value&&a)$('date').value=a;if(ed<0&&!$('date1').value&&$('date').value)$('date1').value=$('date').value;lastDate=$('date').value}
+$('date').addEventListener('change',function(){var v=this.value,e=$('date1');if(v&&(!e.value||e.value==lastDate||e.value<v))e.value=v;lastDate=v});
+$('d0').addEventListener('input',function(){defDates()});
+var ed=-1,cov='',covset={};
+function setCover(fs){if(fs[0])readImg(fs[0],function(u){cov=u;save();render()})}
+function clearCover(){cov='';save();render()}
+function tmTxt(it,empty){var a=it.t0||empty||'',e='';if(it.d1&&it.d1!=it.date)e=it.d1.slice(5).replace('-','/')+(it.t1?' '+it.t1:'');else if(it.t1)e=it.t1;return a+(e?'–'+e:'')}
+function edit(i){var it=items[i];ed=i;pend=[];$('pv').innerHTML='';
+ $('type').value=it.type;$('name').value=it.name;$('date').value=it.date||'';$('date1').value=it.d1||'';$('t0').value=it.t0||'';$('t1').value=it.t1||'';$('from').value=it.from||'';$('to').value=it.to||'';$('link').value=it.link||'';$('memo').value=it.memo||'';
+ $('ab').textContent='予定を更新';$('cb').style.display='';$('type').scrollIntoView({block:'center'})}
+function cancelEdit(){ed=-1;pend=[];$('pv').innerHTML='';$('photo').value='';['name','date1','t0','t1','from','to','link','memo','url','paste'].forEach(function(k){$(k).value=''});$('ab').textContent='予定に追加';$('cb').style.display='none';defDates()}
+function ldImg(u){return new Promise(function(r){var im=new Image();im.onload=function(){r(im)};im.onerror=function(){r(null)};im.src=u})}
+function adj(im,st,W,H){var c=document.createElement('canvas');c.width=W;c.height=H;var g=c.getContext('2d');
+ var iw=im.naturalWidth,ih=im.naturalHeight,cs=Math.max(W/iw,H/ih),sc=cs*st.z/100,dw=iw*sc,dh=ih*sc,sx=0,sy=0,sw=iw,sh=ih,dx=0,dy=0,dW=W,dH=H;if(dw>=W){sw=W/sc;sx=(iw-sw)*st.x/100}else{dW=dw;dx=(W-dw)*st.x/100}if(dh>=H){sh=H/sc;sy=(ih-sh)*st.y/100}else{dH=dh;dy=(H-dh)*st.y/100}if(dw<W||dh<H){g.fillStyle='#000';g.fillRect(0,0,W,H);g.globalAlpha=.3;g.drawImage(im,(iw-W/cs)/2,(ih-H/cs)/2,W/cs,H/cs,0,0,W,H);g.globalAlpha=1}g.drawImage(im,sx,sy,sw,sh,dx,dy,dW,dH);
+ 
+ if(st.b!=100||st.c!=100||st.s!=100){var d=g.getImageData(0,0,W,H),p=d.data,b=st.b/100,k=st.c/100,s=st.s/100;
+  for(var i=0;i<p.length;i+=4){var r=p[i]*b,q=p[i+1]*b,w=p[i+2]*b;r=(r-128)*k+128;q=(q-128)*k+128;w=(w-128)*k+128;var l=.299*r+.587*q+.114*w;p[i]=l+(r-l)*s;p[i+1]=l+(q-l)*s;p[i+2]=l+(w-l)*s}
+  g.putImageData(d,0,0)}
+ return c}
+var DEF={x:50,y:50,z:100,b:100,c:100,s:100},FLD=[['x','横位置',0,100],['y','縦位置',0,100],['z','拡大・縮小',30,300],['b','明るさ',50,150],['c','コントラスト',50,150],['s','彩度',0,200]];
+function isDef(s){return !s||Object.keys(DEF).every(function(k){return s[k]==null||s[k]==DEF[k]})}
+function mainSrc(){if(cov)return cov;var s='';items.forEach(function(it){(it.photos||[]).forEach(function(p,n){if(!s&&(it.off||[]).indexOf(n)<0)s=p})});return s}
+function bakeAll(){var ps=[],cr=$('bro').querySelector('.cover');
+ if(cr&&!isDef(covset)){var src=mainSrc();if(src)ps.push(ldImg(src).then(function(im){var W=cr.clientWidth,H=cr.clientHeight;if(!im||!W||!H)return;cr.style.backgroundImage='linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.6)),url('+adj(im,covset,W*2,H*2).toDataURL('image/jpeg',.88)+')'}))}
+ Array.prototype.forEach.call($('bro').querySelectorAll('.pw img'),function(e){var it=items[+e.dataset.i],st=(it.pset||{})[e.dataset.n];if(!isDef(st))ps.push(ldImg(it.photos[+e.dataset.n]).then(function(im){var W=e.clientWidth,H=e.clientHeight;if(im&&W&&H)e.src=adj(im,st,W*2,H*2).toDataURL('image/jpeg',.88)}))});
+ return Promise.all(ps)}
+var edc=null;
+function edBox(){var d=$('ped');if(!d){d=document.createElement('div');d.id='ped';d.className='noprint';d.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:50;display:none;align-items:center;justify-content:center;padding:16px;overflow:auto';document.body.appendChild(d)}return d}
+function openEd(k,i,n){var st,src,el;
+ if(k==1){src=mainSrc();el=$('bro').querySelector('.cover');st=covset=Object.assign({},DEF,covset)}
+ else{var it=items[i];it.pset=it.pset||{};st=it.pset[n]=Object.assign({},DEF,it.pset[n]);src=it.photos[n];el=document.querySelector('#bc'+i+' .pw img[data-n="'+n+'"]')}
+ if(!src)return;
+ var asp=el&&el.clientHeight?el.clientWidth/el.clientHeight:1.5;edc={k:k,i:i,n:n,st:st};
+ var W=Math.min(480,window.innerWidth-60),H=Math.round(W/asp);
+ var h='<div style="background:var(--card);color:var(--tx);border-radius:12px;padding:14px;max-width:520px;width:100%"><canvas id="edv" width="'+W+'" height="'+H+'" style="width:100%;border-radius:8px;display:block"></canvas>';
+ FLD.forEach(function(f){h+='<label>'+f[1]+'</label><input type="range" min="'+f[2]+'" max="'+f[3]+'" value="'+st[f[0]]+'" data-f="'+f[0]+'" oninput="edSet(this.dataset.f,this.value)">'});
+ h+='<div class="row" style="margin-top:10px"><button class="sub" onclick="edReset()">リセット</button><button onclick="edClose()">完了</button></div></div>';
+ var d=edBox();d.innerHTML=h;d.style.display='flex';
+ ldImg(src).then(function(im){if(edc){edc.im=im;edDraw()}})}
+function edDraw(){var c=$('edv');if(!c||!edc||!edc.im)return;c.getContext('2d').drawImage(adj(edc.im,edc.st,c.width,c.height),0,0)}
+function edSet(f,v){edc.st[f]=+v;edDraw()}
+function edReset(){Object.assign(edc.st,DEF);openEd(edc.k,edc.i,edc.n)}
+function edClose(){$('ped').style.display='none';edc=null;save();render()}
+function cmpO(a,b){var ha=a.o!=null,hb=b.o!=null;if(ha&&hb)return a.o-b.o;if(ha!=hb)return ha?-1:1;var x=a.t0||'99',y=b.t0||'99';return x<y?-1:x>y?1:0}
+function biSt(it){return it.lay=='left'?'flex-direction:row':it.lay=='right'?'flex-direction:row-reverse':it.lay=='bottom'?'flex-direction:column-reverse':''}
+function fsz(i,v){items[i].fs=+v;var e=document.querySelector('#bc'+i+' .bd');if(e)e.style.fontSize=v+'px'}
+function lay(i,v){items[i].lay=v;save();render()}
+function mv(i,d){var it=items[i],k=it.date||'日付未定',l=items.filter(function(x){return (x.date||'日付未定')==k}).sort(cmpO),j=l.indexOf(it),t=j+d;if(t<0||t>=l.length)return;var a=l[j];l[j]=l[t];l[t]=a;l.forEach(function(x,n){x.o=n});save();render()}
+function phHtml(it){var p=it.photos||[],o=it.off||[],s='';p.forEach(function(u,n){if(o.indexOf(n)<0)s+='<img src="'+u+'" data-i="'+it.i+'" data-n="'+n+'" style="cursor:pointer" title="クリックで切り取り・色を調整" onclick="openEd(0,'+it.i+','+n+')">'});return s?'<div class="pw" style="height:'+(it.ph||190)+'px'+((it.lay=='left'||it.lay=='right')?';width:45%;flex:none':'')+'">'+s+'</div>':''}
+function ctlHtml(it){var p=it.photos||[];var o=it.off||[],i=it.i,h='<div class="ctl" data-html2canvas-ignore="true">';
+ p.forEach(function(u,n){h+='<label><input type="checkbox"'+(o.indexOf(n)<0?' checked':'')+' onchange="tgl('+i+','+n+')"><img src="'+u+'"></label>'});
+ if(p.length)h+='<label>高さ <input type="range" min="60" max="420" value="'+(it.ph||190)+'" oninput="szH('+i+',this.value)" onchange="save();bakeAll()"></label>';
+ h+='<label>幅 <select onchange="szW('+i+',this.value)"><option value="1"'+(!it.span||it.span==1?' selected':'')+'>1列</option><option value="2"'+(it.span==2?' selected':'')+'>2列</option><option value="3"'+(it.span==3?' selected':'')+'>全幅</option></select></label>';
+ if(p.length)h+='<label>写真 <select onchange="lay('+i+',this.value)">'+['top','left','right','bottom'].map(function(v,k){return '<option value="'+v+'"'+((it.lay||'top')==v?' selected':'')+'>'+['上','左','右','下'][k]+'</option>'}).join('')+'</select></label>';
+ h+='<label>文字 <input type="range" min="10" max="24" value="'+(it.fs||14)+'" oninput="fsz('+i+',this.value)" onchange="save()"></label><button class="sub" onclick="mv('+i+',-1)">◀ 前へ</button><button class="sub" onclick="mv('+i+',1)">後ろへ ▶</button></div>';return h}
+function tgl(i,n){var it=items[i];it.off=it.off||[];var k=it.off.indexOf(n);if(k<0)it.off.push(n);else it.off.splice(k,1);save();render()}
+function szH(i,v){items[i].ph=+v;var e=document.querySelector('#bc'+i+' .pw');if(e)e.style.height=v+'px'}
+function szW(i,v){items[i].span=+v;$('bc'+i).style.gridColumn=v==3?'1/-1':v==2?'span 2':'';save();bakeAll()}
+function renderBro(t,r){
+ var all=[];items.forEach(function(it){(it.photos||[]).forEach(function(p,n){if((it.off||[]).indexOf(n)<0)all.push(p)})});
+ var main=cov||all[0],cv=main?'background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.6)),url('+main+');':'';
+ var h='<div class="ctl" data-html2canvas-ignore="true" style="margin-bottom:8px;border-radius:8px"><label>表紙の写真 <input type="file" accept="image/*" style="width:auto" onchange="setCover(this.files)"></label>'+(cov?'<button class="sub" onclick="clearCover()">自動に戻す</button>':'<span>未選択のときは最初の写真を使います</span>')+'<span>／写真をクリックで切り取り・色を調整</span></div><div class="cover" onclick="openEd(1)" style="cursor:pointer;'+cv+'"><h2>'+esc(t)+'</h2><p>'+esc(r.replace('　',''))+'</p></div>';
+ var g={};items.forEach(function(it){var k=it.date||'日付未定';(g[k]=g[k]||[]).push(it)});
+ Object.keys(g).sort(function(a,b){return a=='日付未定'?1:b=='日付未定'?-1:a<b?-1:1}).forEach(function(k){
+  var lab=k;if(k!='日付未定'){var d=new Date(k+'T00:00:00');lab=k+'（'+'日月火水木金土'[d.getDay()]+'）'}
+  h+='<div class="dg"><div class="bday">'+esc(lab)+'</div><div class="grid">';
+  g[k].sort(cmpO).forEach(function(it){
+   var p=it.photos||[];
+   h+='<div class="bc" id="bc'+it.i+'" style="'+(it.span==3?'grid-column:1/-1':it.span==2?'grid-column:span 2':'')+'">'+'<div class="bi" style="'+biSt(it)+'">'+phHtml(it)+'<div class="bd" style="font-size:'+(it.fs||14)+'px"><div class="note">'+tmTxt(it)+'</div><div class="nm"><span class="tg">'+esc(it.type)+'</span>'+esc(it.name)+'</div>'+((it.from||it.to)?'<div class="note">'+esc(it.from)+' → '+esc(it.to)+'</div>':'')+(it.memo?'<div class="note">'+esc(it.memo)+'</div>':'')+(it.link?'<div class="url">'+esc(it.link)+'</div>':'')+'</div></div>'+ctlHtml(it)+'</div>'});
+  h+='</div></div>'});
+ $('bro').innerHTML=h;bakeAll()}
+load();cov=meta.cov||'';covset=meta.covset||{};$("trip").value=meta.trip||"";$("d0").value=meta.d0||"";$("d1").value=meta.d1||"";
+["trip","d0","d1"].forEach(function(i){$(i).addEventListener("input",function(){save();render()})});defDates();
+render();
+</script>
+</body>
+</html>
